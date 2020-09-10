@@ -14,25 +14,25 @@ module ClosureTree
         :with_advisory_lock
       )
 
-      class_attribute :_ct
-      self._ct = ClosureTree::Support.new(self, options)
+      connection_pool.with_connection {
+        class_attribute :_ct
+        self._ct = ClosureTree::Support.new(self, options)
 
-      # Auto-inject the hierarchy table
-      # See https://github.com/patshaughnessy/class_factory/blob/master/lib/class_factory/class_factory.rb
-      class_attribute :hierarchy_class
-      self.hierarchy_class = _ct.hierarchy_class_for_model
+        # Auto-inject the hierarchy table
+        # See https://github.com/patshaughnessy/class_factory/blob/master/lib/class_factory/class_factory.rb
+        class_attribute :hierarchy_class
+        self.hierarchy_class = _ct.hierarchy_class_for_model
 
-      # tests fail if you include Model before HierarchyMaintenance wtf
-      include ClosureTree::HierarchyMaintenance
-      include ClosureTree::Model
-      include ClosureTree::Finders
-      include ClosureTree::HashTree
-      include ClosureTree::Digraphs
+        # tests fail if you include Model before HierarchyMaintenance wtf
+        include ClosureTree::HierarchyMaintenance
+        include ClosureTree::Model
+        include ClosureTree::Finders
+        include ClosureTree::HashTree
+        include ClosureTree::Digraphs
 
-      include ClosureTree::DeterministicOrdering if _ct.order_option?
-      include ClosureTree::NumericDeterministicOrdering if _ct.order_is_numeric?
-
-      connection_pool.release_connection
+        include ClosureTree::DeterministicOrdering if _ct.order_option?
+        include ClosureTree::NumericDeterministicOrdering if _ct.order_is_numeric?
+      }
     rescue StandardError => e
       raise e unless ClosureTree.configuration.database_less
     end

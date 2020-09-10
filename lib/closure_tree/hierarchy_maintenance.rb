@@ -123,7 +123,7 @@ module ClosureTree
 
         [:descendant_id, :ancestor_id].each do |foreign_key|
           alias_name = foreign_key.to_s.split('_').first + "s"
-          alias_table = Arel::Table.new(table_name).alias(alias_name)
+          alias_table = Arel::Table.new(table_name, type_caster: type_caster).alias(alias_name)
           arel_join = hierarchy_table.join(alias_table, Arel::Nodes::OuterJoin)
                                      .on(alias_table[primary_key].eq(hierarchy_table[foreign_key]))
                                      .join_sources

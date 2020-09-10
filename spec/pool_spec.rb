@@ -1,6 +1,11 @@
 require 'spec_helper'
 
 describe 'Configuration' do
+  before(:each) do
+    # Make sure we start up with no active connection
+    ActiveRecord::Base.connection_pool.release_connection
+  end
+
   it 'returns connection to the pool after has_closure_tree setup' do
     class TypeDuplicate < ActiveRecord::Base
       self.table_name = "namespace_type#{table_name_suffix}"
