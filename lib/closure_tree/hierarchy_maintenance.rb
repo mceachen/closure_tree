@@ -23,7 +23,7 @@ module ClosureTree
       if !(defined? @_ct_skip_cycle_detection) &&
         !new_record? && # don't validate for cycles if we're a new record
         changes[_ct.parent_column_name] && # don't validate for cycles if we didn't change our parent
-        parent.present? && # don't validate if we're root
+        parent && # don't validate if we're root
         parent.self_and_ancestors.include?(self) # < this is expensive :\
         errors.add(_ct.parent_column_sym, I18n.t('closure_tree.loop_error', default: 'You cannot add an ancestor as a descendant'))
       end
