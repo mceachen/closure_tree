@@ -404,6 +404,8 @@ end
 ```
 This way, the complete hierarchy including all subclasses will be rebuilt.
 
+If you need to preserve a certain children order to rebuild your tree you can call `rebuild` with the keyword `child_order` and give a regular ordering hash: `rebuild!(child_order: {name: :desc})`
+
 ## Deterministic ordering
 
 By default, children will be ordered by your database engine, which may not be what you want.

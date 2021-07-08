@@ -12,6 +12,15 @@ RSpec.describe ClosureTree::HierarchyMaintenance do
       Metal.rebuild!
       expect(MetalHierarchy.count).to eq(hierarchy_count)
     end
+
+    it 'rebuild tree with specific child order' do
+      parent = Metal.create(value: "Parent")
+      Metal.create(value: "name3")
+      Metal.create(value: "name1")
+      Metal.create(value: "name2")
+      expect(parent.children).to receive(:reorder).with({value: :desc}).once.and_call_original
+      parent.rebuild!(child_order: {value: :desc})
+    end
   end
 
   describe '.cleanup!' do

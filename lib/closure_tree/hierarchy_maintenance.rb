@@ -62,7 +62,7 @@ module ClosureTree
       true # don't prevent destruction
     end
 
-    def rebuild!(called_by_rebuild = false)
+    def rebuild!(called_by_rebuild = false, child_order: nil)
       _ct.with_advisory_lock do
         delete_hierarchy_references unless (defined? @was_new_record) && @was_new_record
         hierarchy_class.create!(:ancestor => self, :descendant => self, :generations => 0)
@@ -82,7 +82,7 @@ module ClosureTree
           _ct_reorder_siblings if !called_by_rebuild
         end
 
-        children.find_each { |c| c.rebuild!(true) }
+        children.reorder(child_order).find_each { |c| c.rebuild!(true, child_order: child_order) }
 
         _ct_reorder_children if _ct.order_is_numeric? && children.present?
       end
@@ -110,10 +110,10 @@ module ClosureTree
     module ClassMethods
       # Rebuilds the hierarchy table based on the parent_id column in the database.
       # Note that the hierarchy table will be truncated.
-      def rebuild!
+      def rebuild!(child_order: nil)
         _ct.with_advisory_lock do
           cleanup!
-          roots.find_each { |n| n.send(:rebuild!) } # roots just uses the parent_id column, so this is safe.
+          roots.find_each { |n| n.send(:rebuild!, child_order: child_order) } # roots just uses the parent_id column, so this is safe.
         end
         nil
       end
