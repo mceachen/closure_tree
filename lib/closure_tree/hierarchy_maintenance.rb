@@ -38,18 +38,36 @@ module ClosureTree
       as_5_1 = ActiveSupport.version >= Gem::Version.new('5.1.0')
       changes_method = as_5_1 ? :saved_changes : :changes
 
-      if public_send(changes_method)[_ct.parent_column_name] || @was_new_record
-        rebuild!
+      if public_send(changes_method)[_ct.parent_column_name]
+        _ct_persist_activerecord_state do
+          if @was_new_record
+            rebuild!
+          else
+            # Resetting the ancestral collections addresses
+            # https://github.com/mceachen/closure_tree/issues/68
+            ancestor_hierarchies.reload
+            self_and_ancestors.reload
+          end
+        end
       end
-      if public_send(changes_method)[_ct.parent_column_name] && !@was_new_record
-        # Resetting the ancestral collections addresses
-        # https://github.com/mceachen/closure_tree/issues/68
-        ancestor_hierarchies.reload
-        self_and_ancestors.reload
-      end
+
       @was_new_record = false # we aren't new anymore.
       @_ct_skip_sort_order_maintenance = false # only skip once.
       true # don't cancel anything.
+    end
+
+    def _ct_persist_activerecord_state &block
+      tmp_previous_mutation_tracker = @previous_mutation_tracker
+      tmp_mutation_tracker = @mutation_tracker
+      tmp_mutations_from_database = @mutations_from_database
+      tmp_mutations_before_last_save = @mutations_before_last_save
+
+      yield block
+
+      @previous_mutation_tracker = tmp_previous_mutation_tracker
+      @mutation_tracker = tmp_mutation_tracker
+      @mutations_from_database = tmp_mutations_from_database
+      @mutations_before_last_save = tmp_mutations_before_last_save
     end
 
     def _ct_before_destroy
