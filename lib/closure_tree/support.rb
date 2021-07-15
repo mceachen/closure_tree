@@ -27,7 +27,11 @@ module ClosureTree
       }.merge(options)
       raise ArgumentError, "name_column can't be 'path'" if options[:name_column] == 'path'
       if order_is_numeric?
-        extend NumericOrderSupport.adapter_for_connection(connection)
+        if ClosureTree.configuration.database_type
+          extend NumericOrderSupport.adapter_for_database_type(ClosureTree.configuration.database_type)
+        else
+          extend NumericOrderSupport.adapter_for_connection(connection)
+        end
       end
     end
 

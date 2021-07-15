@@ -12,6 +12,17 @@ module ClosureTree
       end
     end
 
+    def self.adapter_for_database_type(database_type)
+      case database_type
+      when :postgresql
+        ::ClosureTree::NumericOrderSupport::PostgreSQLAdapter
+      when :mysql
+        ::ClosureTree::NumericOrderSupport::MysqlAdapter
+      else
+        ::ClosureTree::NumericOrderSupport::GenericAdapter
+      end
+    end
+
     module MysqlAdapter
       def reorder_with_parent_id(parent_id, minimum_sort_order_value = nil)
         return if parent_id.nil? && dont_order_roots
