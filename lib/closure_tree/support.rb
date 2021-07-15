@@ -27,7 +27,8 @@ module ClosureTree
       }.merge(options)
       raise ArgumentError, "name_column can't be 'path'" if options[:name_column] == 'path'
       if order_is_numeric?
-        extend NumericOrderSupport.adapter_for_connection(connection)
+        database_type = database_type_from_options || database_type_from_connection
+        extend NumericOrderSupport.adapter_for_database_type(database_type)
       end
     end
 
@@ -169,6 +170,17 @@ module ClosureTree
 
     def create!(model_class, attributes)
       create(model_class, attributes).tap { |ea| ea.save! }
+    end
+
+    def database_type_from_connection
+      das = WithAdvisoryLock::DatabaseAdapterSupport.new(connection)
+      if das.postgresql?
+        :postgres
+      elsif das.mysql?
+        :mysql
+      else
+        :generic
+      end
     end
   end
 end
